@@ -5,8 +5,8 @@ const mysql = require('mysql2');
 
 let con = mysql.createConnection({
   host: 'localhost',
-  user: 'codyc',
-  password: 'Venellope51!',
+  user: 'nodejs',
+  password: 'password',
   database: 'sphere_db'
 });
 let app = express();
