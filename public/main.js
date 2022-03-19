@@ -147,7 +147,7 @@ const s = (sketch) => {
 let myp5 = new p5(s, 'grid');
 
 const s2 = (sketch2) => {
-  let btnSave, btnLoad, btnTable, colorPicker, table;
+  let btnSave, btnLoad, btnTable, btnUpdate, colorPicker, table;
 
   sketch2.setup = () => {
     var canvas3 = sketch2.createCanvas(100, 100);
@@ -156,9 +156,11 @@ const s2 = (sketch2) => {
     this.setTableData();
     this.btnSave = sketch2.createButton('Save');
     this.btnLoad = sketch2.createButton('Load');
+    this.btnUpdate = sketch2.createButton('Update');
     // this.btnTable = createButton('Show Table');
     this.btnSave.mouseClicked(this.saveData);
     this.btnLoad.mouseClicked(this.loadData);
+    this.btnUpdate.mouseClicked(this.updateData);
     // this.btnTable.mouseClicked(this.showTable);
   }
 
@@ -197,6 +199,11 @@ const s2 = (sketch2) => {
   }
 
   this.saveData = () => {
+    setTableData();
+    socket.emit('save', this.table.getArray());
+  }
+
+  this.updateData = () => {
     setTableData();
     socket.emit('update', this.table.getArray());
   }
