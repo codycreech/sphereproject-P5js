@@ -35,6 +35,7 @@ function listen() {
   console.log('Listening at http://' + host + ':' + port);
 }
 
+//CORS info so chrome doesn't yell at me
 var io = socket(server, {
   cors: {
     origin: "http://192.168.0.114:3000",
@@ -47,6 +48,7 @@ io.on('disconnect', function() {
   console.log('Client has disconnected');
 });
 
+//Preloads existing table data to the client
 io.on('connect', (socket) => {
   con.query(qry, function(err, results, fields) {
     if(err) {
@@ -59,6 +61,8 @@ io.on('connect', (socket) => {
   socket.on('data', data => {
     console.log(data);
   });
+  
+  //Update any changes to the table
   socket.on('update', table => {
       for(let i = 0; i < table.length; i++) {
         let tmp = [table[i][5],table[i][0],table[i][1]];
@@ -70,6 +74,8 @@ io.on('connect', (socket) => {
       }
       console.log('Updated nodes.');
   });
+  
+  //Create initial table if it doesn't exist
   socket.on('save', table => {
       for(let i = 0; i < table.length; i++) {
         con.query(stmt, table[i], (err, results, fields) => {
@@ -80,6 +86,8 @@ io.on('connect', (socket) => {
       }
       console.log('Loaded nodes.');
   });
+  
+  //Get the table from the db and send to the client
   socket.on('load', function() {
     con.query(qry, function(err, results, fields) {
       if(err) {
