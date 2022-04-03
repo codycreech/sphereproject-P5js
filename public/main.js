@@ -1,7 +1,13 @@
+/*
+Author: Cody Creech
+Copyright 2022
+Description: Custom Ornament Design Program - Allows the user
+to see the finished product before it's made.
+*/
 let g;
 let n = [[null],[null]];
 let socket;
-
+//start main sketch (3D globe)
 function setup() {
   var canvas = createCanvas(windowWidth, windowHeight, WEBGL);
   canvas.parent('sphere');
@@ -13,6 +19,7 @@ function setup() {
 
   socket = io.connect("http://192.168.0.114:3000");
 
+  //Preload existing data from the database
   socket.on('newData', nData => {
     for(let i = 0; i < nData.length; i++) {
       n[nData[i].a][nData[i].b].x = nData[i].x;
@@ -37,7 +44,10 @@ function windowResized() {
   resizeCanvas(windowWidth, windowHeight, WEBGL);
   createEasyCam();
 }
+//end main sketch
 
+//start 2nd sketch (grid view)
+//Grid view allows the user to choose the color of the beads
 const s = (sketch) => {
   let col, row, nSize, canvas2, gridWidth, gridHeight;
 
@@ -145,7 +155,9 @@ const s = (sketch) => {
   // }
 }
 let myp5 = new p5(s, 'grid');
+//end 2nd sketch
 
+//start 3rd sketch (Option buttons to save, load, update the database, and the colorpicker for the grid view)
 const s2 = (sketch2) => {
   let btnSave, btnLoad, btnTable, btnUpdate, colorPicker, table;
 
@@ -167,7 +179,7 @@ const s2 = (sketch2) => {
   sketch2.draw = () => {
 
   }
-
+  //temp table to send to the server in the correct format to be stored in the database
   this.setTableData = () => {
     this.table = new p5.Table();
     this.table.addColumn('id1');
@@ -191,25 +203,26 @@ const s2 = (sketch2) => {
       }
     }
   }
-
+  //onclick for showtable button (testing purposes)
   this.showTable = () => {
     if(this.table){
       console.table(this.table.getArray());
     }
   }
-
+  //onclick for save button
   this.saveData = () => {
     setTableData();
     socket.emit('save', this.table.getArray());
   }
-
+  //onclick for update button
   this.updateData = () => {
     setTableData();
     socket.emit('update', this.table.getArray());
   }
-
+  //onclick for load button
   this.loadData = () => {
     socket.emit('load');
   }
 }
 let myp5_2 = new p5(s2, 'options');
+//end 3rd sketch
