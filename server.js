@@ -2,6 +2,7 @@ const express = require('express');
 const socket = require('socket.io');
 const cors = require('cors');
 const mysql = require('mysql2');
+const path = require('path');
 
 //Mysql connection info
 let con = mysql.createConnection({
@@ -33,6 +34,18 @@ con.connect(function(err) {
 });
 
 app.use(express.static('public'));
+
+app.get('/index', (req, res) => {
+  res.sendFile(__dirname + '/public/index.html')
+})
+
+app.get('/edit', (req, res) => {
+  res.sendFile(__dirname + '/public/edit.html')
+})
+
+app.get('/preview', (req, res) => {
+  res.sendFile(__dirname + '/public/preview.html')
+})
 
 
 //Listens for new clients
@@ -70,7 +83,7 @@ io.on('connect', (socket) => {
 //  socket.on('data', data => {
 //    console.log(data);
 //  });
-  
+
   //Update any changes to the table
   socket.on('update', table => {
       for(let i = 0; i < table.length; i++) {
@@ -83,7 +96,7 @@ io.on('connect', (socket) => {
       }
       console.log('Updated nodes.');
   });
-  
+
   //Loads initial table data into the db if it doesn't exist
   socket.on('save', table => {
       for(let i = 0; i < table.length; i++) {
@@ -95,7 +108,7 @@ io.on('connect', (socket) => {
       }
       console.log('Loaded nodes.');
   });
-  
+
   //Get the table data from the db and send to the client
   socket.on('load', function() {
     con.query(qry, function(err, results, fields) {
@@ -106,7 +119,7 @@ io.on('connect', (socket) => {
       console.log('Sent table to client.');
     });
   });
-  
+
   //Shows the id for each client connected
   console.log('new connection: ' + socket.id);
 });
