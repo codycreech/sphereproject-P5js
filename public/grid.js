@@ -1,5 +1,12 @@
-let col, row, nSize, socket, g, colorPicker, table, btnUpdate, btnTable, btnColor, sum;
+/*
+Author: Cody Creech
+Copyright 2022
+Description: Custom Ornament Design Program - Allows the user
+to see the finished product before it's made.
+*/
+let col, row, nSize, socket, g, colorPicker, table, btnUpdate, btnTable, btnColor, select, sum;
 let n = [];
+let saves = [];
 
 function setup() {
   var canvas = createCanvas(1000, 1000);
@@ -14,35 +21,41 @@ function setup() {
   g.create();
   n = g.getNodes();
 
+  btnUpdate = createButton('Update');
+  btnUpdate.mouseClicked(updateData);
+  colorPicker = createColorPicker(color(235, 149, 52));
+  colorPicker.position(75, height + 10);
+  colorPicker.size(50,25);
+  select = createSelect();
+  select.position(150, height + 10);
+
   socket = io.connect("http://192.168.0.114:3000");
 
   //Preload existing data from the database
-  socket.on('newData', nData => {
+  socket.on('nData', nData => {
     for(let i = 0; i < nData.length; i++) {
       n[nData[i].a][nData[i].b].x = nData[i].x;
       n[nData[i].a][nData[i].b].y = nData[i].y;
       n[nData[i].a][nData[i].b].z = nData[i].z;
       n[nData[i].a][nData[i].b].color = nData[i].color;
     }
-    console.log('Received table data from server.');
-  })
+    console.log('Received node data from server.');
+  });
+
+  socket.on('sData', sData => {
+    for(let i = 0; i < sData.length; i++) {
+      select.option(sData[i].name);
+    }
+    console.log('Received save data from server.');
+  });
 
   setTableData();
 
-  btnUpdate = createButton('Update');
-  btnUpdate.mouseClicked(updateData);
-  btnColor = createButton('Color');
-  colorPicker = createColorPicker(color(235, 149, 52));
-  colorPicker.position(75, height);
-  colorPicker.size(50,50);
 }
 
 function draw() {
   background(150);
-  // sketch.drawGrid();
-  fill(colorPicker.value());
-  square(100,height,50);
-  // translate();
+
   drawNodes();
   drawSelection();
 

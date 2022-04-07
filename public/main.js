@@ -19,14 +19,14 @@ function setup() {
   socket = io.connect("http://192.168.0.114:3000");
 
   //Preload existing data from the database
-  socket.on('newData', nData => {
+  socket.on('nData', nData => {
     for(let i = 0; i < nData.length; i++) {
       n[nData[i].a][nData[i].b].x = nData[i].x;
       n[nData[i].a][nData[i].b].y = nData[i].y;
       n[nData[i].a][nData[i].b].z = nData[i].z;
       n[nData[i].a][nData[i].b].color = nData[i].color;
     }
-    console.log('Received table data from server.');
+    console.log('Received node data from server.');
   })
 
   if(n) {

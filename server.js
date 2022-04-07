@@ -1,3 +1,9 @@
+/*
+Author: Cody Creech
+Copyright 2022
+Description: Custom Ornament Design Program - Allows the user
+to see the finished product before it's made.
+*/
 const express = require('express');
 const socket = require('socket.io');
 const cors = require('cors');
@@ -18,9 +24,10 @@ let server = app.listen(3000, listen);
 
 //List of SQL queries
 let createTable = 'create table if not exists nodes(id int auto_increment primary key, a int not null, b int not null, x varchar(150) not null, y varchar(150) not null, z varchar(150) not null, color varchar(150) not null)';
-let stmt = 'INSERT INTO nodes(a,b,x,y,z,color) VALUES(?,?,?,?,?,?)';
-let upd = 'UPDATE nodes SET color = ? WHERE a = ? AND b = ?';
-let qry = 'SELECT a,b,x,y,z,color FROM nodes';
+let insertNodes = 'INSERT INTO nodes(a,b,x,y,z,color,name) VALUES(?,?,?,?,?,?,?)';
+let updateNodes = 'UPDATE nodes SET color = ? WHERE a = ? AND b = ?';
+let getNodes = 'SELECT a,b,x,y,z,color FROM nodes';
+let getSaves = 'SELECT name FROM saves';
 
 //Creates initial table when a user connects to the site if it doesn't exist
 con.connect(function(err) {
@@ -71,12 +78,20 @@ io.on('disconnect', function() {
 
 //Preloads existing table data to the client
 io.on('connect', (socket) => {
-  con.query(qry, function(err, results, fields) {
+  con.query(getNodes, function(err, results1, fields) {
     if(err) {
       return console.error(err.message);
     }
-    socket.emit('newData', results);
-    console.log('Sent table to client.');
+    socket.emit('nData', results1);
+    console.log('Sent node data to client.');
+  });
+
+  con.query(getSaves, function(err, results2, fields) {
+    if(err) {
+      return console.error(err.message);
+    }
+    socket.emit('sData', results2);
+    console.log('Sent saves to client.');
   });
 
   //Me testing sending/receiving data through a socket
@@ -88,7 +103,7 @@ io.on('connect', (socket) => {
   socket.on('update', table => {
       for(let i = 0; i < table.length; i++) {
         let tmp = [table[i][5],table[i][0],table[i][1]];
-        con.query(upd, tmp, (err, results, fields) => {
+        con.query(updateNodes, tmp, (err, results, fields) => {
           if(err) {
             return console.error(err.message);
           }
@@ -100,7 +115,7 @@ io.on('connect', (socket) => {
   //Loads initial table data into the db if it doesn't exist
   socket.on('save', table => {
       for(let i = 0; i < table.length; i++) {
-        con.query(stmt, table[i], (err, results, fields) => {
+        con.query(insertNodes, table[i], (err, results, fields) => {
           if(err) {
             return console.error(err.message);
           }
@@ -111,12 +126,12 @@ io.on('connect', (socket) => {
 
   //Get the table data from the db and send to the client
   socket.on('load', function() {
-    con.query(qry, function(err, results, fields) {
+    con.query(getNodes, function(err, results1, fields) {
       if(err) {
         return console.error(err.message);
       }
-      socket.emit('newData', results);
-      console.log('Sent table to client.');
+      socket.emit('nData', results1);
+      console.log('Sent nodes to client.');
     });
   });
 

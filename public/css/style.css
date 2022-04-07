@@ -14,17 +14,17 @@ nav {
   margin-top: 20px;
   left: 20px;
   position: fixed;
-  width: 50vw;
-  min-width: 220px;
+  width: 20vw;
+  min-width: 80px;
   height: 200px;
   z-index: 1;
 }
 
-input {
+#toggle {
   position: fixed;
-  left: 20px;
-  margin-top: 20px;
-  width: 50vw;
+  left: 15px;
+  margin-top: 30px;
+  width: 10vw;
   z-index: 1;
   opacity: 0;
   cursor: pointer;
