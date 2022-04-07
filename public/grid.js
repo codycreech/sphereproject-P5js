@@ -5,6 +5,7 @@ Description: Custom Ornament Design Program - Allows the user
 to see the finished product before it's made.
 */
 let col, row, nSize, socket, g, colorPicker, table, btnUpdate, btnTable, btnColor, select, sum;
+let inputText, btnAdd, btnLoad;
 let n = [];
 let saves = [];
 
@@ -23,13 +24,29 @@ function setup() {
 
   btnUpdate = createButton('Update');
   btnUpdate.mouseClicked(updateData);
+  btnUpdate.size(75,25);
+  btnUpdate.position(width + 10,0);
   colorPicker = createColorPicker(color(235, 149, 52));
-  colorPicker.position(75, height + 10);
+  colorPicker.position(width + 10,35);
   colorPicker.size(50,25);
   select = createSelect();
-  select.position(150, height + 10);
+  select.position(width + 10,75);
+  select.size(125,25);
+  btnLoad = createButton('Load');
+  btnLoad.size(75,25);
+  btnLoad.position(width + 10, 110);
+  btnLoad.mouseClicked(loadData);
+  inputText = createInput();
+  inputText.size(100,20);
+  inputText.position(width + 10,140);
+  btnAdd = createButton('Add Save');
+  btnAdd.size(75,25);
+  btnAdd.position(width + 10,175);
+  btnAdd.mouseClicked(addSaveData);
 
   socket = io.connect("http://192.168.0.114:3000");
+
+  // socket.emit('currentSel', select.value());
 
   //Preload existing data from the database
   socket.on('nData', nData => {
@@ -38,13 +55,17 @@ function setup() {
       n[nData[i].a][nData[i].b].y = nData[i].y;
       n[nData[i].a][nData[i].b].z = nData[i].z;
       n[nData[i].a][nData[i].b].color = nData[i].color;
+      n[nData[i].a][nData[i].b].name = nData[i].name;
     }
+    select.selected(nData[0].name);
     console.log('Received node data from server.');
   });
 
   socket.on('sData', sData => {
     for(let i = 0; i < sData.length; i++) {
       select.option(sData[i].name);
+      // select.selected(sData[i].name);
+      console.log(select.value());
     }
     console.log('Received save data from server.');
   });
@@ -72,19 +93,23 @@ function draw() {
 
 function mousePressed() {
   let nCol, nRow;
-  nCol = floor((mouseX) / nSize);
-  nRow = floor((mouseY) / nSize);
-  if(n[nCol][nRow]){
-    n[nCol][nRow].color = colorPicker.value();
+  if(mouseX > 0 && mouseX < width && mouseY > 0 && mouseY < height){
+    nCol = floor((mouseX) / nSize);
+    nRow = floor((mouseY) / nSize);
+    if(n[nCol][nRow]){
+      n[nCol][nRow].color = colorPicker.value();
+    }
   }
 }
 
 function mouseDragged() {
   let nCol, nRow;
-  nCol = floor((mouseX) / nSize);
-  nRow = floor((mouseY) / nSize);
-  if(n[nCol][nRow]){
-    n[nCol][nRow].color = colorPicker.value();
+  if(mouseX > 0 && mouseX < width && mouseY > 0 && mouseY < height){
+    nCol = floor((mouseX) / nSize);
+    nRow = floor((mouseY) / nSize);
+    if(n[nCol][nRow]){
+      n[nCol][nRow].color = colorPicker.value();
+    }
   }
 }
 
@@ -110,12 +135,21 @@ function drawNodes() {
   pop();
 }
 
+function loadData() {
+  socket.emit('load', select.value());
+}
+
+function addSaveData() {
+  setTableData(inputText.value());
+  socket.emit('save', table.getArray());
+}
+
 function updateData() {
-  setTableData();
+  setTableData(select.value());
   socket.emit('update', table.getArray());
 }
 
-function setTableData() {
+function setTableData(text) {
   table = new p5.Table();
   table.addColumn('id1');
   table.addColumn('id2');
@@ -123,6 +157,7 @@ function setTableData() {
   table.addColumn('Y');
   table.addColumn('Z');
   table.addColumn('Color');
+  table.addColumn('Name');
   for(var i = 0; i < n.length; i++){
     for(var j = 0; j < n[i].length; j++){
       let v = n[i][j];
@@ -134,6 +169,7 @@ function setTableData() {
         tableRow.set('Y', v.getY());
         tableRow.set('Z', v.getZ());
         tableRow.set('Color', v.getColor());
+        tableRow.set('Name', text);
       }
     }
   }

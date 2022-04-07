@@ -10,6 +10,8 @@ const cors = require('cors');
 const mysql = require('mysql2');
 const path = require('path');
 
+let lastSave = 'default';
+
 //Mysql connection info
 let con = mysql.createConnection({
   host: 'localhost',
@@ -25,9 +27,10 @@ let server = app.listen(3000, listen);
 //List of SQL queries
 let createTable = 'create table if not exists nodes(id int auto_increment primary key, a int not null, b int not null, x varchar(150) not null, y varchar(150) not null, z varchar(150) not null, color varchar(150) not null)';
 let insertNodes = 'INSERT INTO nodes(a,b,x,y,z,color,name) VALUES(?,?,?,?,?,?,?)';
-let updateNodes = 'UPDATE nodes SET color = ? WHERE a = ? AND b = ?';
-let getNodes = 'SELECT a,b,x,y,z,color FROM nodes';
+let updateNodes = 'UPDATE nodes SET color = ? WHERE a = ? AND b = ? AND name = ?';
+let getNodes = 'SELECT a,b,x,y,z,color,name FROM nodes WHERE name = ?';
 let getSaves = 'SELECT name FROM saves';
+let insertSave = 'INSERT INTO saves(name) VALUES(?)';
 
 //Creates initial table when a user connects to the site if it doesn't exist
 con.connect(function(err) {
@@ -78,7 +81,7 @@ io.on('disconnect', function() {
 
 //Preloads existing table data to the client
 io.on('connect', (socket) => {
-  con.query(getNodes, function(err, results1, fields) {
+  con.query(getNodes, lastSave, function(err, results1, fields) {
     if(err) {
       return console.error(err.message);
     }
@@ -102,7 +105,7 @@ io.on('connect', (socket) => {
   //Update any changes to the table
   socket.on('update', table => {
       for(let i = 0; i < table.length; i++) {
-        let tmp = [table[i][5],table[i][0],table[i][1]];
+        let tmp = [table[i][5],table[i][0],table[i][1],table[i][6]];
         con.query(updateNodes, tmp, (err, results, fields) => {
           if(err) {
             return console.error(err.message);
@@ -121,19 +124,29 @@ io.on('connect', (socket) => {
           }
         });
       }
-      console.log('Loaded nodes.');
+      con.query(insertSave, table[0][6], (err, results, fields) => {
+        if(err) {
+          return console.error(err.message);
+        }
+      });
+      lastSave = table[0][6];
   });
 
   //Get the table data from the db and send to the client
-  socket.on('load', function() {
-    con.query(getNodes, function(err, results1, fields) {
+  socket.on('load', selection => {
+    con.query(getNodes, selection, function(err, results, fields) {
       if(err) {
         return console.error(err.message);
       }
-      socket.emit('nData', results1);
+      socket.emit('nData', results);
+      lastSave = selection;
       console.log('Sent nodes to client.');
     });
   });
+
+  // socket.on('currentSel', sel => {
+  //   lastSave = sel;
+  // });
 
   //Shows the id for each client connected
   console.log('new connection: ' + socket.id);
