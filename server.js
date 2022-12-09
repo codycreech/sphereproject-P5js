@@ -97,7 +97,7 @@ io.on('connect', (socket) => {
     console.log('Sent saves to client.');
   });
 
-  //Me testing sending/receiving data through a socket
+  //Testing sending/receiving data through a socket
 //  socket.on('data', data => {
 //    console.log(data);
 //  });
